@@ -94,6 +94,9 @@ ytest       = encoder.transform(test_labels)
 print encoder.vocabulary_
 print encoder.vocabulary
 print "CountVectorizer done"
+with open("../data/labels.txt",'wb') as f:
+    for k,v in encoder.vocabulary_.iteritems():
+        f.write(k+','+str(v)+'\n')
 
 
 

@@ -20,7 +20,7 @@ The above call fits a model with 40 topics, using the dictionary specified.
 """
 
 import cPickle
-import helperFuncs
+#import helperFuncs
 import onlineldavb
 import sys
 from os import listdir
@@ -30,16 +30,44 @@ import operator
 import numpy as np
 
 
+def toDictionary(doc_list,test_docs,folder):
+    counts     = {}
+    for x in doc_list:
+        sp     = x.split(" ")
+        for w in sp:
+            if w in counts:
+                counts[w]+=1
+            else:
+                counts[w] = 1
+    for x in test_docs:
+        sp     = x.split(" ")
+        for w in sp:
+            if w in counts:
+                counts[w]+=1
+            else:
+                counts[w] = 1
+
+    with open(folder+"dictionary.txt",'wb') as f:
+        for k,v in counts.iteritems():
+            f.write(k+"\n")
+        
+                
+
+folder     = sys.argv[1]
+K          = int(sys.argv[2])
+alpha      = float(sys.argv[3])
+beta       = float(sys.argv[4])
+
 doc_list    =   []
 test_docs   =   []
 
 #list the docs in pickledDocs folder
-p   =   "../data/processed/"
+p   =   folder+"processed/"
 l   =   listdir(p)
 fileList    =   [p+f for f in l]
 
-toTrain     = str.split(file("../data/trainFileList.txt").read())
-toTest      = str.split(file("../data/cvFileList.txt").read())
+toTrain     = str.split(file(folder+"trainFileList.txt").read())
+toTest      = str.split(file(folder+"testFileList.txt").read())
 
 
 
@@ -58,46 +86,35 @@ for fi in fileList:
         else:
             print "problem!"
     
-doc_list    = helperFuncs.stem_docs(doc_list)
-test_docs   = helperFuncs.stem_docs(test_docs)
-print doc_list[0]
-print test_docs[0]
+#doc_list    = helperFuncs.stem_docs(doc_list)
+#test_docs   = helperFuncs.stem_docs(test_docs)
+
+toDictionary(doc_list,test_docs,folder)
+
 
 #D is total number of docs to show to the model, K is number of topics
-goal_its    =   10              #number of iterations to run the LDA process
+goal_its    =   4               #number of iterations to run the LDA process
 corp_size   =   len(doc_list)   #number of documents in the corpus
 D           =   corp_size       #number of documents expected to see
-K           =   40              #Default topic value, if none given in parameters
+#K           =   40              #Default topic value, if none given in parameters
 saveModel   =   True            #whether to save LDA model itself, lambda
-alpha       =   .001
-eta         =   1./K
+#alpha       =   .001
+#eta         =   1./K
 
 #define the vocabulary file we will be using
-vocab       =   vocab = str.split(file("../data/dictionary.txt").read())
+vocab       =   vocab = str.split(file(folder+"dictionary.txt").read())
 
 #initialize an instance of the OnlineLDA algorithm
-#parameters - dictionary, num topics, learning rate, eta, tau, kappa
-#if the path to an OnlineLDA pickle is passed, it re-opens that pickle
-
-lda         =   onlineldavb.OnlineLDA(vocab,K,D,alpha,eta,1024,0.)
-print "created LDA with parameters:\n#topics: "+str(K)+"\nalpha: "+str(alpha)+"\neta: "+str(eta)
+#parameters - dictionary, num topics, alpha, beta, tau, kappa
+lda         =   onlineldavb.OnlineLDA(vocab,K,D,alpha,beta,1024,0.)
+print "created LDA with parameters:\n#topics: "+str(K)+"\nalpha: "+str(alpha)+"\nbeta: "+str(beta)
  
 W           =   len(vocab)
 
-paramTitle  = ""
 
 print "dictionary size: " + str(W)
-print paramTitle
 
 
-
-folder  = "../data/models/"+str(W)+"_"+str(K)+"/"
-print folder
-#if desc.find("label") > -1:
-#    with open("../data/out/past_models/"+paramTitle+"/dictionary.txt",'wb') as f:
-#        voc = sorted(vocab.items(),key=operator.itemgetter(1))
-#        for x in voc:
-#            f.write(x[0]+"\n")
 #perform LDA on the document list for goal_its iterations, updating lambda
 for i in range(lda._updatect,goal_its):
     print i
@@ -118,8 +135,12 @@ for i in range(lda._updatect,goal_its):
 for td in test_docs:
     doc_list.append(td)
 
+both_inds     = []
+[both_inds.append(ind) for ind in inds1]
+[both_inds.append(ind) for ind in inds2]
+
 #write out the order in which we read gamma
-with open("../data/fileList.txt",'wb') as fl:
+with open(folder+"fileList.txt",'wb') as fl:
     fl.write('\n'.join(inds1)+"\n")
     fl.write('\n'.join(inds2))
 
@@ -143,6 +164,10 @@ with open(folder+"/LDA.pickle",'wb') as f:
     cp3 = cPickle.Pickler(f)
     cp3.dump(lda)
 
+with open(folder+"LDA_ids_and_vecs.csv",'wb') as f:
+    for num in range(0,len(doc_list)):
+        vecStr     = '|'.join([str(g) for g in gamma[num]])
+        f.write(both_inds[num]+','+vecStr+'\n')        
 
 
 

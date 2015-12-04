@@ -6,7 +6,7 @@ Created on Fri Jul 31 11:41:53 2015
 """
 
 
-
+import sys
 import codecs
 from gensim.models import Word2Vec
 import json
@@ -30,7 +30,8 @@ def export_to_file(path_to_model, output_file):
  
  
 def main():
-     export_to_file("../data/vectors.bin","../data/vectors.txt")
+    folder     = sys.argv[1]
+    export_to_file(folder+"vectors.bin",folder+"vectors.txt")
      
 if __name__ == "__main__":
     main()

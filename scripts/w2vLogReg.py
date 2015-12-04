@@ -5,6 +5,7 @@ Created on Sat Nov 28 23:30:35 2015
 @author: jmf
 """
 import re
+import sys
 import helperFuncs
 from nltk.stem  import porter
 import operator
@@ -14,9 +15,9 @@ from os.path import isfile
 from scipy.spatial.distance import cosine
 
 """Returns the word2vec vectors as a dictionary of "term": np.array()"""
-def loadThemVectors():
+def loadThemVectors(folder):
     outMat  = {}
-    with open("../data/vectors.txt",'rb') as f:
+    with open(folder+"vectors.txt",'rb') as f:
         for line in f.readlines():
             sp  = line.split()
             name= sp[0].strip()            
@@ -48,77 +49,122 @@ def getMostSim(mins):
         if v < out[1]:
             out = [k,v]
     return out
-
-with open("../data/fileList.txt",'rb') as f:
-    filelist    = [x.strip() for x in f.read().split("\n")][:-1]
-with open("../data/cvFileList.txt",'rb') as f:
-    testFiles  = [x.strip() for x in f.read().split("\n")]
- 
-c=re.compile("[\[\]\(\)\]!,.=\-;'&%]")
-nonums  = re.compile("[^a-zA-Z_ ]+?") 
-
-if not isfile("../data/forW2V.txt"):
-    with open("../data/forW2V.txt",'wb') as f:   
-        stemmer = porter.PorterStemmer() 
-        for x in filelist:
-            with open(x,'rb') as f1:
-                s   = f1.read().lower()
-                s   = re.sub(c,'',s)
-                s   = re.sub(nonums,'',s)
-                sp  = s.split(" ")
-                ws  = [stemmer.stem(w) for w in sp]
-                s   = ' '.join(ws)
-                f.write(s+"\n")
     
-else:
-    with open("../data/labels.txt",'rb') as f:
-        r     = np.array([x.split(',') for x in f.read().split("\n") if x != ''])
-    r     = list(r[:,0])
+def getMins(mins,stemmedFoods):
+    out     = np.zeros((len(stemmedFoods),1))
+    for k,v in mins.iteritems():
+        ind     = stemmedFoods.index(k)
+        out[ind]= v
+    return out
+    
+def prettyPrint(minc,meanc,true,stemmedFoods):
+    am     = np.argmin(meanc)
+    minMean= stemmedFoods[am]
+    print "MinC: ", minc, "MinMean: ", minMean, "True: ", true
+
+
+def main():
+    folder     = sys.argv[1]
+    
+    with open(folder+"fileList.txt",'rb') as f:
+        filelist    = [x.strip() for x in f.read().split("\n")][:-1]
+    with open(folder+"testFileList.txt",'rb') as f:
+        testFiles  = [x.strip() for x in f.read().split("\n")]
+     
+    c=re.compile("[\[\]\(\)\]!,.=\-;'&%]")
+    nonums  = re.compile("[^a-zA-Z_ ]+?") 
+    
+    
+    if sys.argv[2] == "create":
+    
         
-    stemmer = porter.PorterStemmer()
-    stemmedFoods     = [stemmer.stem(c) for c in r]
-    vecs    = loadThemVectors()   
-    cuisines= []
-    preds   = []
-    corr      = 0
-    inc       = 0
-    count     = 0
-    for x in filelist:
-        name    = x[x.rfind("/")+1:]
-        cuisine = name[name.find("_")+1:]
-        c       = stemmer.stem(cuisine)
-        #print c, cuisine, name, x
-        if name in testFiles:
-            #print x
-            with open(x,'rb') as f1:
-                s   = f1.read().lower()
-                s   = re.sub(c,'',s)
-                s   = re.sub(nonums,'',s)
-                sp  = [bit for bit in s.split(" ") if bit != '']
-                mins     = {}
-                for word in sp:
-                    word     = stemmer.stem(word)
-                    results     =  vecSearch(word,vecs,stemmedFoods)
-                    for x in results[1]:
-                        cuisine = x[0]
-                        score   = float(x[1])
-                        if cuisine in mins:
-                            if score < mins[cuisine]:
-                                mins[cuisine] = score
-                        else:
-                            mins[cuisine] = score
-                        
-                #print sorted(mins.items(),key=operator.itemgetter(1))
-                pred     =  getMostSim(mins)[0]
-                preds.append(pred)
-                cuisines.append(c)
-                count+=1
-                if pred == c:
-                    corr+=1
-                else:
-                    inc +=1
-                print pred, c
-                print corr*1./count
-    print corr*1./(corr+inc)
+        with open(folder+"forW2V.txt",'wb') as f:   
+            stemmer = porter.PorterStemmer() 
+            for x in filelist:
+                with open(x,'rb') as f1:
+                    s   = f1.read().lower()
+                    s   = re.sub(c,'',s)
+                    s   = re.sub(nonums,'',s)
+                    f.write(s+"\n")
+    else:
+        
+        with open(folder+"labels.txt",'rb') as f:
+            r     = np.array([x.split(',') for x in f.read().split("\n") if x != ''])
+        r     = list(r[:,0])
+            
+        stemmer = porter.PorterStemmer()
+        stemmedFoods     = [stemmer.stem(c) for c in r]
+        print stemmedFoods
+        vecs    = loadThemVectors(folder)   
+        cuisines= []
+        preds   = []
+        corr      = 0
+        inc       = 0
+        count     = 0
+        with open(folder+"w2vVectorz.csv",'wb') as f:
+            for x in filelist:
+                name    = x[x.rfind("/")+1:]
+                cuisine = name[name.find("_")+1:]
+                c       = stemmer.stem(cuisine)
+                print c
+                #print c, cuisine, name, x
     
+                #print x
+                with open(x,'rb') as f1:
+                    s   = f1.read().lower()
+                    s   = re.sub(c,'',s)
+                    s   = re.sub(nonums,'',s)
+                    sp  = [bit for bit in s.split(" ") if bit != '']
+                    mins       = {}
+                    resAll     = np.zeros((len(stemmedFoods),1))
+                    resAll     = [list(z) for z in resAll]
+                    
+                    
+                    for word in sp:
+                        #word        = stemmer.stem(word)
+                        try:                    
+                            results     =  vecSearch(word,vecs,stemmedFoods)
+                            for x in results[1]:
+                                cuisine = x[0]
+                                score   = float(x[1])
+                                ind     = stemmedFoods.index(cuisine)
+                                resAll[ind].append(score)
+                                if cuisine in mins:
+                                    if score < mins[cuisine]:
+                                        mins[cuisine] = score
+                                else:
+                                    mins[cuisine] = score
+                        except KeyError:
+                            pass
+                    
+
+                    
+                    print resAll
+                    resAll     = np.array(resAll)
+                    means      = [np.mean(rall) for rall in resAll]
+                    if min(means) < 0.1:
+                        print results[1]
+                    print means
+                    mins2      = getMins(mins,stemmedFoods)
+                    print mins2
+                    #print sorted(mins.items(),key=operator.itemgetter(1))
+                    pred     =  getMostSim(mins)[0]
+                    
+                    meanstring     = '|'.join([str(a) for a in means])
+                    minstring      = '|'.join([str(a[0]) for a in mins2])
+                    f.write(name+','+meanstring+','+minstring+'\n')
+    #                preds.append(pred)
+    #                cuisines.append(c)
+    #                
+    #                prettyPrint(pred,means,c,stemmedFoods)                
+    #                
+    #                count+=1
+    #                if pred == c:
+    #                    corr+=1
+    #                else:
+    #                    inc +=1
+
+        
     
+if __name__ == "__main__":
+    main()    

@@ -54,12 +54,21 @@ def main():
 
     if runType == "cv":
         for cvRun in range(0,1):         
-            #subprocess.call(["python","makeDocs.py",folder,"cv",str(cvRun)])
-            #subprocess.call(["python","callLDA.py",folder,str(k),str(alpha),str(beta)])      
+            print "Making Docs..."
+            subprocess.call(["python","makeDocs.py",folder,"cv",str(cvRun)])
+            subprocess.call(["mv","../data/labels.txt",folder])
+            print "LDA time..."
+            subprocess.call(["python","callLDA.py",folder,str(k),str(alpha),str(beta)])  
+            print "creating W2V"
             subprocess.call(["python","w2vLogReg.py",folder,"create"])
+            print "training W2V model"
             subprocess.call(["sh","./w2v.sh",folder])
+            print "txt-ing vectors"
             subprocess.call(["python","vec2txt.py",folder])
-            subprocess.call(["python","w2vLogReg.py",folder,"run"])            
+            print "calculating min and mean distance to cuisines for ingredients"
+            subprocess.call(["python","w2vLogReg.py",folder,"run"])  
+            print "predicting based on inputs"
+            subprocess.call(["python","ensemblePred.py",folder,"1.0"])
             
     elif runType == "test":
         subprocess.call(["python","makeDocs.py",folder,"test",""])

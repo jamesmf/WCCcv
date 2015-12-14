@@ -54,6 +54,8 @@ def loadData(runType,cvRun):
 
 def dataToDocList(traindata,testdata,folder):
     stemmer     = porter.PorterStemmer()
+    trainfl     = ""
+    testfl      = ""
     for x in traindata:
         cuisine     = x["cuisine"]
         ing         = x["ingredients"]
@@ -62,8 +64,10 @@ def dataToDocList(traindata,testdata,folder):
         s           = processDoc(s,stemmer)
         with open(folder+"processed/"+ID,'wb') as f:
             f.write(s)
-        with open(folder+"trainFileList.txt",'a') as f2:
-            f2.write(ID+"\n")
+
+        trainfl += ID+"\n"
+    with open(folder+"trainFileList.txt",'wb') as f2:
+        f2.write(trainfl)
         
     for x in testdata:
         cuisine     = x["cuisine"]+" "
@@ -73,8 +77,9 @@ def dataToDocList(traindata,testdata,folder):
         s           = processDoc(s,stemmer)
         with open(folder+"processed/"+ID,'wb') as f:
             f.write(s)
-        with open(folder+"testFileList.txt",'a') as f2:
-            f2.write(ID+"\n")
+        testfl += ID+"\n"
+    with open(folder+"testFileList.txt",'wb') as f2:
+        f2.write(testfl)
 
 
 def main():

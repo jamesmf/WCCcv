@@ -103,10 +103,12 @@ Xtest,test_labels,dummy  = toFeatureSpace(testIDs,testLDAvecs,testW2V,testCuisin
 """Transform from labels to one-hot vectors"""
 encoder     = CountVectorizer()
 ytrain      = encoder.fit_transform(train_labels)
-ytest       = encoder.transform(test_labels)
+if EVALUATE:
+    ytest       = encoder.transform(test_labels)
 
 ytrain      = np.array([np.argmax(y.toarray()[0]) for y in ytrain])
-ytest       = np.array([np.argmax(y.toarray()[0]) for y in ytest])
+if EVALUATE:
+    ytest       = np.array([np.argmax(y.toarray()[0]) for y in ytest])
 
 
 
@@ -118,7 +120,8 @@ preds   = logreg.predict(Xtest)
 #preds2  = svc.predict(Xtest)
 
 if EVALUATE:
-    for count in range(0,len(
+    for count in range(0,len(ytest)):
+	print ytest[count], preds[count]
 
 
 

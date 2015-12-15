@@ -19,7 +19,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 #Load files that map from gamma to files and which files are train/test
 with open("../data/fileList.txt",'rb') as f:
-    filelist    = [x.strip() for x in f.read().split("\n")][:-1]
+    filelist    = [x.strip() for x in f.read().split("\n") if x != '']
 with open("../data/trainFileList.txt",'rb') as f:
     trainFiles  = [x.strip() for x in f.read().split("\n")]
 with open("../data/cvFileList.txt",'rb') as f:

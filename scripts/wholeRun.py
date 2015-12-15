@@ -56,7 +56,7 @@ def main():
         for cvRun in range(0,1):         
             print "Making Docs..."
             subprocess.call(["python","makeDocs.py",folder,"cv",str(cvRun)])
-            subprocess.call(["mv","../data/labels.txt",folder])
+            subprocess.call(["cp","../data/labels.txt",folder])
             print "LDA time..."
             subprocess.call(["python","callLDA.py",folder,str(k),str(alpha),str(beta)])  
             print "creating W2V"

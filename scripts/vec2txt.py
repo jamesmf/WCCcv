@@ -17,7 +17,6 @@ def export_to_file(path_to_model, output_file):
 	vocab = model.vocab
 	for mid in vocab:
 		#print(model[mid])
-		print(mid)
 		vector = list()
 		for dimension in model[mid]:
 			vector.append(str(dimension))

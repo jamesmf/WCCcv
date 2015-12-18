@@ -152,19 +152,19 @@ print np.exp(-perwordbound)
 
 if not isdir(folder):
     mkdir(folder)
-with open(folder+"/gamma.pickle",'wb') as f:
-    cp2 = cPickle.Pickler(f)
-    cp2.dump(gamma)
-with open(folder+"/lambda.pickle",'wb') as f:
-    cp  = cPickle.Pickler(f)
-    cp.dump(lda._lambda)
+#with open(folder+"/gamma.pickle",'wb') as f:
+#    cp2 = cPickle.Pickler(f)
+#    cp2.dump(gamma)
+#with open(folder+"/lambda.pickle",'wb') as f:
+#    cp  = cPickle.Pickler(f)
+#    cp.dump(lda._lambda)
+#
+#
+#with open(folder+"/LDA.pickle",'wb') as f:
+#    cp3 = cPickle.Pickler(f)
+#    cp3.dump(lda)
 
-
-with open(folder+"/LDA.pickle",'wb') as f:
-    cp3 = cPickle.Pickler(f)
-    cp3.dump(lda)
-
-with open(folder+"LDA_ids_and_vecs.csv",'wb') as f:
+with open(folder+"LDA_"+str(K)+"_ids_and_vecs.csv",'wb') as f:
     for num in range(0,len(doc_list)):
         vecStr     = '|'.join([str(g) for g in gamma[num]])
         f.write(both_inds[num]+','+vecStr+'\n')        

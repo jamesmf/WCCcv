@@ -108,7 +108,6 @@ def main():
             
         stemmer = porter.PorterStemmer()
         stemmedFoods     = [stemmer.stem(c) for c in r]
-        print stemmedFoods
         vecs    = loadThemVectors(folder)   
         cuisines= []
         preds   = []
@@ -117,20 +116,14 @@ def main():
         count     = 0
         
         cuisineVecs     = getCuisineVectors(vecs,stemmedFoods)   
-        print len(cuisineVecs)
         #print cuisineVecs
         totFiles     = len(filelist)
         
         
         with open(folder+"w2vVectorz.csv",'wb') as f:
             for x in filelist:
-                if count % 1000 == 0:
+                if count % 10000 == 0:
                     print count, "/", totFiles
-                    
-                if x.find("22652")> -1:
-                    print x
-                else:
-                    pass
                 
                 
                 name    = x[x.rfind("/")+1:]
@@ -145,6 +138,8 @@ def main():
                     s   = re.sub(c,'',s)
                     s   = re.sub(nonums,'',s)
                     sp  = [bit for bit in s.split(" ") if bit != '']
+                    while sp[-1] in stemmedFoods:
+                        sp     = sp[:-1]
                     mins       = {}
                     distances  = []
 #                    resAll     = np.ones((len(stemmedFoods),1))

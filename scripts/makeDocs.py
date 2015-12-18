@@ -32,7 +32,6 @@ def loadData(runType,cvRun):
             data    = json.load(f)
             
         np.random.shuffle(data)
-        print data[0]
         holdOut     = 0.20
         numHold     = int(holdOut*len(data))
         ind1        = cvRun*numHold
@@ -58,9 +57,10 @@ def dataToDocList(traindata,testdata,folder):
     testfl      = ""
     for x in traindata:
         cuisine     = x["cuisine"]
+        cuisine2    = cuisine+" "
         ing         = x["ingredients"]
         ID          = str(x["id"])+"_"+cuisine
-        s           = ' '.join(ing)+" "+cuisine
+        s           = ' '.join(ing)+" "+cuisine2*3
         s           = processDoc(s,stemmer)
         with open(folder+"processed/"+ID,'wb') as f:
             f.write(s)
@@ -70,7 +70,10 @@ def dataToDocList(traindata,testdata,folder):
         f2.write(trainfl)
         
     for x in testdata:
-        cuisine     = x["cuisine"]+" "
+        if "cuisine" in x:
+            cuisine     = x["cuisine"]+" "
+        else:
+            cuisine     = ""
         ing         = x["ingredients"]
         ID          = str(x["id"])+"_"+cuisine[:-1]
         s           = ' '.join(ing)
